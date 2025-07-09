@@ -7,4 +7,4 @@ staticfiles/
 **/.pyc
 db.sqlite3
 *.log
-log/
+logs/
