@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Exam Results{% endblock %}
+{% block header_subtitle %}{{ session.exam.title }} - {{ session.student_name }}{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <!-- Summary Card -->
+    <div class="results-card summary">
+        <h2>Exam Summary</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <label>Student Name</label>
+                <span>{{ session.student_name }}</span>
+            </div>
+            <div class="summary-item">
+                <label>Grade Level</label>
+                <span>{{ session.student_grade }}</span>
+            </div>
+            <div class="summary-item">
+                <label>Subject</label>
+                <span>{{ session.exam.subject.name }}</span>
+            </div>
+            <div class="summary-item">
+                <label>Exam Title</label>
+                <span>{{ session.exam.title }}</span>
+            </div>
+            <div class="summary-item">
+                <label>Date Taken</label>
+                <span>{{ session.started_at|date:"F j, Y, g:i a" }}</span>
+            </div>
+            <div class="summary-item">
+                <label>Duration</label>
+                <span>{{ session.exam.duration_minutes }} minutes</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Stats -->
+    <div class="results-card stats">
+        <h2>Performance Statistics</h2>
+        <div class="stats-container">
+            <div class="stat-circle">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#eee"
+                        stroke-width="2"/>
+                    <path d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#667eea"
+                        stroke-width="2"
+                        stroke-dasharray="{{ completion_percentage }}, 100"/>
+                </svg>
+                <div class="stat-value">{{ completion_percentage|floatformat:1 }}%</div>
+                <div class="stat-label">Completion</div>
+            </div>
+            <div class="stat-circle">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#eee"
+                        stroke-width="2"/>
+                    <path d="M18 2.0845
+                        a 15.9155 15.9155 0 0 1 0 31.831
+                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#667eea"
+                        stroke-width="2"
+                        stroke-dasharray="{{ accuracy_percentage }}, 100"/>
+                </svg>
+                <div class="stat-value">{{ accuracy_percentage|floatformat:1 }}%</div>
+                <div class="stat-label">Accuracy</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ correct_answers }}/{{ total_questions }}</div>
+                <div class="stat-label">Questions Correct</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{ session.total_score }}/{{ session.exam.get_total_points }}</div>
+                <div class="stat-label">Total Score</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Responses -->
+    <div class="results-card responses">
+        <h2>Question Responses</h2>
+        {% for response in responses %}
+        <div class="response-item {% if response.is_correct %}correct{% else %}incorrect{% endif %}">
+            <div class="response-header">
+                <span class="question-number">Question {{ response.question.order }}</span>
+                <span class="points">{{ response.points_earned }}/{{ response.question.points }} points</span>
+            </div>
+            <div class="question-text">{{ response.question.question_text }}</div>
+            <div class="response-details">
+                <div class="answer-row">
+                    <label>Your Answer:</label>
+                    <span>{{ response.final_answer }}</span>
+                </div>
+                <div class="answer-row">
+                    <label>Correct Answer:</label>
+                    <span>{{ response.question.correct_answer }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'exam:exam_session' %}" class="control-button primary">
+            <i class="fas fa-redo"></i> Take Another Exam
+        </a>
+        <button onclick="window.print()" class="control-button secondary">
+            <i class="fas fa-print"></i> Print Results
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .results-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .results-card h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .summary-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .summary-item label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .summary-item span {
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 30px;
+        justify-items: center;
+    }
+
+    .stat-circle {
+        position: relative;
+        width: 120px;
+        text-align: center;
+    }
+
+    .circular-chart {
+        width: 100%;
+        height: auto;
+    }
+
+    .stat-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+
+    .stat-box {
+        text-align: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        min-width: 150px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .response-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #dc3545;
+    }
+
+    .response-item.correct {
+        border-left-color: #28a745;
+    }
+
+    .response-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .question-number {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .points {
+        color: #666;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+
+    .response-details {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+    }
+
+    .answer-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .answer-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .answer-row label {
+        min-width: 120px;
+        font-weight: 600;
+        color: #666;
+    }
+
+    .actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+        .actions {
+            display: none;
+        }
+        .header {
+            color: black;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_title %}Voice Exam System{% endblock %}
+{% block header_subtitle %}Select an exam to begin the voice-based assessment{% endblock %}
+
+{% block content %}
+    <!-- Messages container -->
+    <div class="messages" id="messages"></div>
+
+    <!-- Exam Setup Panel -->
+    <div class="setup-panel" id="setupPanel">
+        <form id="examSetupForm" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="examSelect">Select an Exam:</label>
+                <select id="examSelect" name="exam_id" required>
+                    <option value="">-- Choose an exam --</option>
+                    {% for exam in active_exams %}
+                        <option value="{{ exam.id }}">
+                            {{ exam.title }} ({{ exam.subject.name }}) - {{ exam.grade_level }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="start-button" id="startExamButton" disabled>
+                Start Voice Exam
+            </button>
+        </form>
+    </div>
+
+    <!-- Voice Interface Panel -->
+    <div class="voice-interface" id="voiceInterface">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-icon"></div>
+                <span id="sessionState">Initializing...</span>
+            </div>
+            <div class="status-item">
+                <i class="fas fa-clock"></i>
+                <span id="timeRemaining">--:--</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <!-- Question Display -->
+        <div class="question-display">
+            <div class="question-number" id="questionNumber"></div>
+            <div class="question-text" id="questionText"></div>
+        </div>
+
+        <!-- Voice Controls -->
+        <div class="controls">
+            <button class="control-button primary" id="recordButton" data-original-text="Start Speaking">
+                <i class="fas fa-microphone"></i>
+                Start Speaking
+            </button>
+            <button class="control-button secondary" id="repeatButton">
+                <i class="fas fa-redo"></i>
+                Repeat Question
+            </button>
+            <button class="control-button secondary" id="stopExamButton">
+                <i class="fas fa-stop"></i>
+                Stop Exam
+            </button>
+        </div>
+
+        <!-- Feedback Display -->
+        <div id="feedback"></div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/voice_exam.js' %}"></script>
+
+<style>
+    .recording {
+        animation: pulse-red 2s infinite;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    }
+
+    @keyframes pulse-red {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    /* Additional styles for better accessibility */
+    .hidden {
+        display: none !important;
+    }
+
+    .active {
+        display: block !important;
+    }
+
+    /* Add focus indicators for keyboard navigation */
+    button:focus, select:focus {
+        outline: 3px solid #4CAF50;
+        outline-offset: 2px;
+    }
+
+    /* Make sure text has sufficient contrast */
+    .question-text, .status-bar {
+        color: #000000;
+    }
+</style>
+{% endblock %}

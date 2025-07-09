@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Session Not Found{% endblock %}
+{% block header_subtitle %}The requested exam session could not be found{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="fas fa-search"></i>
+        </div>
+        <h2>Session Not Found</h2>
+        <p>We couldn't find the exam session you're looking for. This might be because:</p>
+        <ul>
+            <li>The session ID is incorrect</li>
+            <li>The session has expired</li>
+            <li>The session has been deleted</li>
+        </ul>
+        <div class="error-actions">
+            <a href="{% url 'exam:exam_session' %}" class="control-button primary">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        color: #667eea;
+        margin-bottom: 20px;
+    }
+
+    .error-card h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .error-card p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .error-card ul {
+        text-align: left;
+        margin: 0 auto;
+        max-width: 300px;
+        margin-bottom: 30px;
+        color: #666;
+    }
+
+    .error-card ul li {
+        margin-bottom: 10px;
+    }
+
+    .error-actions {
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}

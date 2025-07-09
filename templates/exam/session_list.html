@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Session Monitor{% endblock %}
+{% block header_subtitle %}Monitor active and completed exam sessions{% endblock %}
+
+{% block content %}
+<div class="sessions-container">
+    <!-- Active Sessions -->
+    <div class="session-section">
+        <h2>
+            <i class="fas fa-circle pulse-green"></i>
+            Active Sessions
+            <span class="count-badge">{{ active_sessions|length }}</span>
+        </h2>
+        <div class="session-grid">
+            {% for session in active_sessions %}
+            <div class="session-card active" data-session-id="{{ session.session_id }}">
+                <div class="session-header">
+                    <div class="exam-info">
+                        <h3>{{ session.exam.title }}</h3>
+                        <span class="subject">{{ session.exam.subject.name }}</span>
+                    </div>
+                    <div class="time-info">
+                        <i class="fas fa-clock"></i>
+                        <span class="time-remaining" data-seconds="{{ session.time_remaining }}">
+                            {{ session.time_remaining_formatted }}
+                        </span>
+                    </div>
+                </div>
+                <div class="session-body">
+                    <div class="student-info">
+                        <div class="info-row">
+                            <label>Student:</label>
+                            <span>{{ session.student_name|default:"Pending..." }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Grade:</label>
+                            <span>{{ session.student_grade|default:"Pending..." }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>State:</label>
+                            <span class="session-state">{{ session.current_state|title }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Progress:</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ session.progress_percentage }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="session-actions">
+                        <button class="control-button primary view-session" onclick="viewSession('{{ session.session_id }}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="control-button secondary stop-session" onclick="stopSession('{{ session.session_id }}')">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-coffee"></i>
+                <p>No active sessions at the moment</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Completed Sessions -->
+    <div class="session-section">
+        <h2>
+            <i class="fas fa-check-circle"></i>
+            Completed Sessions
+            <span class="count-badge">{{ completed_sessions|length }}</span>
+        </h2>
+        <div class="session-grid">
+            {% for session in completed_sessions %}
+            <div class="session-card completed">
+                <div class="session-header">
+                    <div class="exam-info">
+                        <h3>{{ session.exam.title }}</h3>
+                        <span class="subject">{{ session.exam.subject.name }}</span>
+                    </div>
+                    <div class="completion-info">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ session.completed_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="session-body">
+                    <div class="student-info">
+                        <div class="info-row">
+                            <label>Student:</label>
+                            <span>{{ session.student_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Grade:</label>
+                            <span>{{ session.student_grade }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Score:</label>
+                            <span>{{ session.total_score }}/{{ session.exam.get_total_points }}</span>
+                        </div>
+                        <div class="info-row">
+                            <label>Completion:</label>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="session-actions">
+                        <a href="{% url 'exam:exam_results' session.session_id %}" class="control-button primary">
+                            <i class="fas fa-chart-bar"></i> Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <i class="fas fa-history"></i>
+                <p>No completed sessions yet</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sessions-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .session-section {
+        margin-bottom: 40px;
+    }
+
+    .session-section h2 {
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .pulse-green {
+        color: #28a745;
+        animation: pulse 2s infinite;
+    }
+
+    .count-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+    }
+
+    .session-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .session-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .session-card.active {
+        border-left: 4px solid #28a745;
+    }
+
+    .session-card.completed {
+        border-left: 4px solid #667eea;
+    }
+
+    .session-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .exam-info h3 {
+        margin: 0;
+        color: #333;
+        font-size: 1.2rem;
+    }
+
+    .subject {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .time-info, .completion-info {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .student-info {
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .info-row label {
+        min-width: 100px;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .progress-bar {
+        flex: 1;
+        height: 6px;
+        background: #e9ecef;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s ease;
+    }
+
+    .session-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 40px;
+        background: white;
+        border-radius: 15px;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #667eea;
+    }
+
+    @media (max-width: 768px) {
+        .session-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update active session times
+    function updateTimes() {
+        document.querySelectorAll('.time-remaining').forEach(el => {
+            let seconds = parseInt(el.dataset.seconds);
+            if (seconds > 0) {
+                seconds--;
+                el.dataset.seconds = seconds;
+                el.textContent = formatTime(seconds);
+            }
+        });
+    }
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Stop session
+    async function stopSession(sessionId) {
+        if (!confirm('Are you sure you want to stop this exam session?')) return;
+
+        try {
+            const response = await fetch('{% url "exam:session_state" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `session_id=${sessionId}&action=emergency_stop`
+            });
+
+            if (response.ok) {
+                showFeedback('Session stopped successfully', 'success');
+                location.reload();
+            } else {
+                showFeedback('Failed to stop session', 'error');
+            }
+        } catch (error) {
+            showFeedback('Failed to stop session', 'error');
+        }
+    }
+
+    // View session
+    function viewSession(sessionId) {
+        window.location.href = `{% url 'exam:exam_results' 'SESSION_ID' %}`.replace('SESSION_ID', sessionId);
+    }
+
+    // Start time updates
+    setInterval(updateTimes, 1000);
+
+    // Auto-refresh page every minute to show new sessions
+    setInterval(() => location.reload(), 60000);
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+.venv
+**/migrations/
+**/__pycache__/
+.env
+media/
+staticfiles/
+**/.pyc
+db.sqlite3
+*.log
+log/

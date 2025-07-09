@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block header_title %}Error{% endblock %}
+{% block header_subtitle %}Something went wrong{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h2>Oops! Something Went Wrong</h2>
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% else %}
+            <p class="error-message">An unexpected error occurred. Please try again later.</p>
+        {% endif %}
+        <div class="error-details">
+            <p>If this problem persists:</p>
+            <ul>
+                <li>Try refreshing the page</li>
+                <li>Clear your browser cache</li>
+                <li>Contact system administrator</li>
+            </ul>
+        </div>
+        <div class="error-actions">
+            <a href="{% url 'exam:exam_session' %}" class="control-button primary">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <button onclick="window.location.reload()" class="control-button secondary">
+                <i class="fas fa-redo"></i> Refresh Page
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+
+    .error-card h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    .error-message {
+        color: #dc3545;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+        padding: 15px;
+        background: #f8d7da;
+        border-radius: 8px;
+    }
+
+    .error-details {
+        text-align: left;
+        margin: 0 auto;
+        max-width: 300px;
+        margin-bottom: 30px;
+    }
+
+    .error-details p {
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .error-details ul {
+        color: #666;
+        padding-left: 20px;
+    }
+
+    .error-details ul li {
+        margin-bottom: 8px;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
