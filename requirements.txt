@@ -17,7 +17,6 @@ proto-plus==1.26.1
 protobuf==6.31.1
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
-PyAudio==0.2.11
 python-dotenv==1.1.1
 requests==2.32.4
 rsa==4.9.1
