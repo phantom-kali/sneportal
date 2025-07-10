@@ -8,8 +8,12 @@ from django.utils.decorators import method_decorator
 from django.conf import settings
 from django.utils import timezone
 from django.core.files.base import ContentFile
+from django.core.files import File
+from datetime import datetime
+import os
+
 from .models import Exam, ExamSession, Subject
-from .voice_processor import VoiceFlowManager
+from .voice_processor import VoiceFlowManager, VoiceProcessor
 import logging
 
 logger = logging.getLogger(__name__)
@@ -73,16 +77,15 @@ class VoiceProcessingView(View):
         self.voice_flow_manager = VoiceFlowManager()
     
     def post(self, request):
-        """Process uploaded audio and return response"""
         try:
-            # Get session
+            # Get session and validate
             session_id = request.POST.get('session_id') or request.session.get('exam_session_id')
             if not session_id:
                 return JsonResponse({'error': 'No active session'}, status=400)
             
             session = get_object_or_404(ExamSession, session_id=session_id)
             
-            # Check if session is still valid (not expired)
+            # Check session expiry
             if session.time_remaining <= 0:
                 session.current_state = 'exam_complete'
                 session.save()
@@ -92,31 +95,84 @@ class VoiceProcessingView(View):
                     'state': 'exam_complete'
                 })
             
-            # Get audio data
+            # Get and validate audio file
             audio_file = request.FILES.get('audio')
             if not audio_file:
                 return JsonResponse({'error': 'No audio file provided'}, status=400)
             
-            # Read audio data
-            audio_data = audio_file.read()
+            # Save recording with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f'recording_{session_id}_{timestamp}.webm'
+            recording_path = os.path.join('recordings', filename)
             
-            # Attach request session to the exam session for temporary data
+            # Ensure directory exists
+            recordings_dir = os.path.join(settings.MEDIA_ROOT, 'recordings')
+            if not os.path.exists(recordings_dir):
+                os.makedirs(recordings_dir)
+            
+            # Save file and read it back
+            file_path = os.path.join(settings.MEDIA_ROOT, recording_path)
+            with open(file_path, 'wb+') as destination:
+                for chunk in audio_file.chunks():
+                    destination.write(chunk)
+            
+            # Read saved file for processing
+            with open(file_path, 'rb') as audio_file:
+                audio_data = audio_file.read()
+            
+            # Process with exact same parameters as management command
+            processor = VoiceProcessor()
+            transcription_result = processor.transcribe_audio(
+                audio_data,
+                sample_rate_hertz=48000,  # Standard webm sample rate
+                encoding='WEBM_OPUS',
+                language_code='en-US',
+                channels=1
+            )
+            
+            if not transcription_result.get('success', False):
+                return JsonResponse({
+                    'error': 'Transcription failed',
+                    'message': transcription_result.get('error', 'Unknown transcription error')
+                }, status=400)
+            
+            # Ensure transcript exists
+            transcript = transcription_result.get('transcript', '')
+            if not transcript:
+                return JsonResponse({
+                    'error': 'Transcription failed',
+                    'message': 'No transcript generated'
+                }, status=400)
+
+            # Save transcription for debugging
+            transcription_data = {
+                'filename': filename,
+                'processed_at': datetime.now().isoformat(),
+                'success': transcription_result.get('success', False),
+                'transcript': transcript,
+                'error': transcription_result.get('error', None)
+            }
+
+            # Process the transcribed text through voice flow
             session._request_session = request.session
+            response = self.voice_flow_manager.handle_voice_input(
+                session,
+                None,  # Don't pass audio_data here
+                transcript  # Pass the validated transcript
+            )
             
-            # Process voice input
-            response = self.voice_flow_manager.handle_voice_input(session, audio_data)
-            
-            # Update time remaining (basic implementation)
-            session.time_remaining = max(0, session.time_remaining - 5)  # Rough estimate
+            # Update session time and save
+            session.time_remaining = max(0, session.time_remaining - 5)
             session.save()
             
             return JsonResponse(response)
             
-        except ExamSession.DoesNotExist:
-            return JsonResponse({'error': 'Invalid session'}, status=404)
         except Exception as e:
-            logger.error(f"Voice processing error: {str(e)}")
-            return JsonResponse({'error': 'Voice processing failed'}, status=500)
+            logger.error(f"Voice processing error: {str(e)}", exc_info=True)
+            return JsonResponse({
+                'error': 'Voice processing failed',
+                'message': str(e)
+            }, status=500)
 
 
 class SessionStateView(View):

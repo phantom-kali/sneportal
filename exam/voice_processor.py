@@ -22,17 +22,21 @@ class VoiceProcessor:
         self.api_key = settings.GOOGLE_API_KEY
         self.voice_settings = getattr(settings, 'VOICE_SETTINGS', {})
     
-    def transcribe_audio(self, audio_data, language_code='en-US'):
+    def transcribe_audio(self, audio_data, language_code='en-US', sample_rate_hertz=16000, encoding='WEBM_OPUS', channels=1):
         """Convert audio to text using Google Speech-to-Text"""
         try:
             # Convert audio data to base64
             audio_content = base64.b64encode(audio_data).decode('utf-8')
             
-            # Prepare request data
+            # Prepare request data with explicit audio config for webm
             data = {
                 "config": {
                     "languageCode": language_code,
-                    "enableAutomaticPunctuation": True
+                    "enableAutomaticPunctuation": True,
+                    "encoding": encoding,  # Changed to WEBM_OPUS
+                    "sampleRateHertz": sample_rate_hertz,
+                    "audioChannelCount": channels,
+                    "model": "default"  # Use default model for better compatibility
                 },
                 "audio": {
                     "content": audio_content
@@ -41,7 +45,11 @@ class VoiceProcessor:
             
             # Make request to Speech-to-Text API
             url = f"https://speech.googleapis.com/v1/speech:recognize?key={self.api_key}"
-            response = requests.post(url, json=data)
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(url, json=data, headers=headers)
             response.raise_for_status()
             
             result = response.json()
@@ -54,13 +62,28 @@ class VoiceProcessor:
                 }
             return {
                 'success': False,
+                'transcript': '',
                 'error': 'No speech detected'
             }
                 
+        except requests.exceptions.RequestException as e:
+            error_message = str(e)
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail = e.response.json()
+                    error_message = f"{error_message}: {error_detail}"
+                except:
+                    pass
+            return {
+                'success': False,
+                'transcript': '',
+                'error': error_message
+            }
         except Exception as e:
             logger.error(f"Speech-to-Text error: {str(e)}")
             return {
                 'success': False,
+                'transcript': '',
                 'error': str(e)
             }
     
@@ -293,27 +316,34 @@ class VoiceFlowManager:
         self.voice_processor = VoiceProcessor()
         self.command_parser = VoiceCommandParser()
     
-    def handle_voice_input(self, session, audio_data):
+    def handle_voice_input(self, session, audio_data, existing_transcript=None):
         """Main entry point for processing voice input"""
         try:
-            # Determine language based on exam
-            language_code = 'sw-KE' if session.exam.language == 'sw' else 'en-US'
+            # Use existing transcript if provided, otherwise transcribe
+            if existing_transcript:
+                transcript = existing_transcript
+                transcription_success = True
+            else:
+                language_code = 'sw-KE' if session.exam.language == 'sw' else 'en-US'
+                transcription_result = self.voice_processor.transcribe_audio(
+                    audio_data, 
+                    language_code,
+                    sample_rate_hertz=48000,
+                    encoding='WEBM_OPUS',
+                    channels=1
+                )
+                transcription_success = transcription_result.get('success', False)
+                transcript = transcription_result.get('transcript', '')
             
-            # Transcribe audio
-            transcription_result = self.voice_processor.transcribe_audio(
-                audio_data, language_code
-            )
-            
-            if not transcription_result['success']:
+            # Validate transcript exists
+            if not transcription_success or not transcript:
                 return self._create_error_response(
                     "Sorry, I couldn't understand your response. Please try again."
                 )
             
-            transcript = transcription_result['transcript']
-            
-            # Parse command based on current state
+            # Process the transcript
             command = self.command_parser.parse_command(transcript, session.current_state)
-            
+                
             # Route to appropriate handler
             if session.current_state == 'student_name':
                 return self._handle_name_input(session, transcript, command)
@@ -593,7 +623,9 @@ class VoiceFlowManager:
         }
         
         if tts_result['success']:
-            response['audio_data'] = tts_result['audio_content']
+            # Encode audio data as base64 for JSON serialization
+            response['audio_data'] = base64.b64encode(tts_result['audio_content']).decode('utf-8')
+            response['audio_content_type'] = tts_result.get('content_type', 'audio/mp3')
         
         return response
     

@@ -20,8 +20,12 @@ class VoiceExamSystem {
         this.analyser = null;
         this.mediaStream = null;
         this.silenceStart = null;
-        this.SILENCE_THRESHOLD = -50; // dB
-        this.MAX_SILENCE_DURATION = 2000; // 2 seconds of silence before stopping
+        this.MIN_RECORDING_TIME = 1000; // Minimum 1 second recording
+        this.SILENCE_THRESHOLD = -65; // Increased threshold for better sensitivity
+        this.MAX_SILENCE_DURATION = 3000; // Increased to 3 seconds
+        this.MAX_RECORDING_DURATION = 30000; // Maximum 30 seconds recording
+        this.retryCount = 0;
+        this.MAX_RETRIES = 3;
     }
 
     bindElements() {
@@ -123,7 +127,11 @@ class VoiceExamSystem {
     async initializeRecording() {
         try {
             this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            this.mediaRecorder = new MediaRecorder(this.mediaStream);
+            // Explicitly set WAV format with correct MIME type
+            this.mediaRecorder = new MediaRecorder(this.mediaStream, {
+                mimeType: 'audio/webm',  // Most browsers support webm
+                bitsPerSecond: 128000
+            });
 
             // Initialize Web Audio API components for voice detection
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -140,7 +148,9 @@ class VoiceExamSystem {
             };
 
             this.mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+                const audioBlob = new Blob(this.audioChunks, { 
+                    type: 'audio/webm' 
+                });
                 // Play end tone before processing
                 await this.playEndTone();
                 await this.processAudioResponse(audioBlob);
@@ -159,6 +169,19 @@ class VoiceExamSystem {
 
         // Calculate average volume level
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        const recordingDuration = Date.now() - this.recordingStartTime;
+
+        // Don't stop if we haven't reached minimum recording time
+        if (recordingDuration < this.MIN_RECORDING_TIME) {
+            requestAnimationFrame(() => this.detectSilence());
+            return;
+        }
+
+        // Stop if maximum duration reached
+        if (recordingDuration >= this.MAX_RECORDING_DURATION) {
+            this.stopRecording();
+            return;
+        }
 
         if (average < this.SILENCE_THRESHOLD) {
             if (!this.silenceStart) {
@@ -171,10 +194,7 @@ class VoiceExamSystem {
             this.silenceStart = null;
         }
 
-        // Continue monitoring while recording
-        if (this.isRecording) {
-            requestAnimationFrame(() => this.detectSilence());
-        }
+        requestAnimationFrame(() => this.detectSilence());
     }
 
     async playEndTone() {
@@ -201,11 +221,20 @@ class VoiceExamSystem {
     }
 
     async processAudioResponse(audioBlob) {
-        const formData = new FormData();
-        formData.append('audio', audioBlob);
-        if (this.sessionData?.session_id) {
-            formData.append('session_id', this.sessionData.session_id);
+        // Don't process if recording was too short
+        if (Date.now() - this.recordingStartTime < this.MIN_RECORDING_TIME) {
+            await this.playTTSResponse("The recording was too short. Please speak after the tone.");
+            await this.playTone();
+            this.startRecording();
+            return;
         }
+
+        const formData = new FormData();
+        // Change the filename extension to match actual format
+        formData.append('audio', audioBlob, `recording_${Date.now()}.webm`);
+        formData.append('session_id', this.sessionData?.session_id);
+        formData.append('state', this.sessionData?.state);
+        formData.append('question_index', this.sessionData?.current_question_index);
 
         try {
             const response = await fetch('/voice/process/', {
@@ -222,12 +251,20 @@ class VoiceExamSystem {
 
     async handleVoiceResponse(data) {
         if (data.error) {
-            await this.playTTSResponse(data.message || data.error);
-            if (data.state === 'exam_complete') {
-                this.endExam();
+            if (this.retryCount < this.MAX_RETRIES) {
+                this.retryCount++;
+                await this.playTTSResponse("I couldn't understand. Please speak clearly after the tone.");
+                await this.playTone();
+                this.startRecording();
+            } else {
+                this.retryCount = 0;
+                await this.playTTSResponse("I'm having trouble understanding. Please get assistance from your teacher.");
             }
             return;
         }
+
+        // Reset retry counter on successful processing
+        this.retryCount = 0;
 
         // Play the response and automatically start recording after it's done
         if (data.text) {
@@ -312,14 +349,23 @@ class VoiceExamSystem {
 
     startRecording() {
         if (this.mediaRecorder && !this.isRecording) {
+            this.audioChunks = [];
             this.mediaRecorder.start();
             this.isRecording = true;
             this.silenceStart = null;
-            this.recordButton.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+            this.recordingStartTime = Date.now();
+            this.recordButton.innerHTML = '<i class="fas fa-stop"></i> Recording...';
             this.recordButton.classList.add('recording');
-            // Start silence detection
+            this.showRecordingFeedback();
             this.detectSilence();
         }
+    }
+
+    showRecordingFeedback() {
+        const feedback = document.createElement('div');
+        feedback.className = 'recording-feedback';
+        feedback.innerHTML = '<i class="fas fa-microphone-alt"></i> Listening...';
+        this.getMessagesContainer().appendChild(feedback);
     }
 
     stopRecording() {

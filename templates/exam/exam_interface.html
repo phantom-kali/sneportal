@@ -109,5 +109,27 @@
     .question-text, .status-bar {
         color: #000000;
     }
+
+    .recording-feedback {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: pulse 1.5s infinite;
+        z-index: 1000;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.6; }
+        100% { opacity: 1; }
+    }
 </style>
 {% endblock %}
