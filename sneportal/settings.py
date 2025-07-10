@@ -15,7 +15,9 @@ SECRET_KEY = "django-insecure-r3btn_b0@3z#cl+$po-my!@)hu4#&jb1pp!o^=4byk47by6^j2
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost:8000", "sneportal.onrender.com"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "https://sneportal.onrender.com"]
+CORS_TRUSTED_ORIGINS = ["http://localhost:8000", "https://sneportal.onrender.com"]
 
 
 INSTALLED_APPS = [
