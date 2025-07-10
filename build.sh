@@ -2,6 +2,9 @@
 # exit on error
 set -o errexit
 
+# Install portaudio development headers
+apt-get update && apt-get install -y portaudio19-dev
+
 # Install dependencies
 pip install -r requirements.txt
 
