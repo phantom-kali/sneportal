@@ -477,3 +477,25 @@ django-cors-headers==4.3.1
 5. **Phase 5**: Testing, optimization, and deployment
 
 This system should provide a seamless, accessible exam experience for blind students while maintaining simplicity and reliability.
+
+
+---
+
+### 💡 Sponsor This Project on Render
+
+This project is currently hosted on [Render](https://render.com) under a free tier. To ensure continuous uptime and unlock more resources (e.g., background workers, storage, faster builds), I’m seeking a sponsor to cover hosting costs.
+
+If you're interested in sponsoring, you can do so **without sending money directly to me**:
+
+1. Create a free account on [Render](https://render.com).
+2. Create a **Team** from your dashboard.
+3. Add a payment method for billing.
+4. Invite me (**[fideleliudclimax@gmail.com](mailto:fideleliudclimax@gmail.com)**) as a collaborator.
+5. I’ll transfer the service to your team and manage everything from there.
+
+✅ You stay in control of the billing.
+✅ I take care of the development, deployment, and maintenance.
+
+**Want to help?** Email me at **[fideleliudclimax@gmail.com](mailto:fideleliudclimax@gmail.com)** or open a discussion in the issues tab.
+
+
