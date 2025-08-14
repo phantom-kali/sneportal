@@ -1,0 +1,106 @@
+// Voice-Enabled Exam System Database Schema
+// Generated from Django Models
+
+Table auth_user {
+  id integer [pk, increment]
+  username varchar(150) [unique, not null]
+  first_name varchar(150)
+  last_name varchar(150)
+  email varchar(254)
+  password varchar(128) [not null]
+  is_staff boolean [default: false]
+  is_active boolean [default: true]
+  date_joined datetime [default: `now()`]
+  last_login datetime
+}
+
+Table subject {
+  id integer [pk, increment]
+  name varchar(100) [not null] // Science, Mathematics, Kiswahili, English
+  code varchar(10) [unique, not null]
+  created_at datetime [default: `now()`]
+  
+  Note: 'Subject classifications for exams'
+}
+
+Table exam {
+  id integer [pk, increment]
+  title varchar(200) [not null]
+  subject_id integer [ref: > subject.id, not null]
+  grade_level varchar(20) [not null] // Grade 1, Grade 2, etc.
+  duration_minutes integer [default: 45]
+  language varchar(10) [default: 'en'] // 'en' or 'sw'
+  instructions text [not null]
+  is_active boolean [default: true]
+  created_by_id integer [ref: > auth_user.id, not null]
+  created_at datetime [default: `now()`]
+  
+  Note: 'Main exam configuration'
+}
+
+Table question {
+  id integer [pk, increment]
+  exam_id integer [ref: > exam.id, not null]
+  question_text text [not null]
+  question_type varchar(20) [not null] // multiple_choice, true_false, short_answer
+  options json // For multiple choice: {"A": "Option 1", "B": "Option 2", ...}
+  correct_answer varchar(500) [not null]
+  order integer [not null]
+  points integer [default: 1]
+  
+  indexes {
+    (exam_id, order) [unique]
+  }
+  
+  Note: 'Individual questions within exams'
+}
+
+Table exam_session {
+  id integer [pk, increment]
+  exam_id integer [ref: > exam.id, not null]
+  session_id varchar(100) [unique, not null]
+  student_name varchar(100)
+  student_grade varchar(20)
+  current_question_index integer [default: 0]
+  current_state varchar(20) [default: 'setup'] // setup, student_name, student_grade, exam_briefing, question_reading, answer_capture, answer_confirmation, exam_complete
+  started_at datetime [default: `now()`]
+  completed_at datetime
+  total_score integer [default: 0]
+  time_remaining integer [not null] // in seconds
+  
+  Note: 'Active exam sessions with state management'
+}
+
+Table student_response {
+  id integer [pk, increment]
+  exam_session_id integer [ref: > exam_session.id, not null]
+  question_id integer [ref: > question.id, not null]
+  audio_file varchar(100) // File path for recorded audio
+  transcribed_text text
+  final_answer varchar(500) [not null]
+  is_correct boolean [default: false]
+  points_earned integer [default: 0]
+  answered_at datetime [default: `now()`]
+  attempts integer [default: 1]
+  
+  indexes {
+    (exam_session_id, question_id) [unique]
+  }
+  
+  Note: 'Student responses to exam questions'
+}
+
+// Relationship Notes:
+// 1. User creates multiple Exams (1:N)
+// 2. Subject has multiple Exams (1:N) 
+// 3. Exam has multiple Questions (1:N)
+// 4. Exam has multiple ExamSessions (1:N)
+// 5. ExamSession has multiple StudentResponses (1:N)
+// 6. Question has multiple StudentResponses (1:N)
+
+// Key Features:
+// - Voice-enabled exam system with audio recording
+// - Multi-language support (English/Kiswahili)
+// - Real-time session state management
+// - Automatic answer checking and scoring
+// - Progress tracking and time management
