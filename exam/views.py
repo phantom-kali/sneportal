@@ -13,7 +13,7 @@ from datetime import datetime
 import os
 
 from .models import Exam, ExamSession, Subject
-from .voice_processor import VoiceFlowManager, VoiceProcessor
+from .voice_processor_local import LocalVoiceFlowManager, LocalVoiceProcessor
 import logging
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class VoiceProcessingView(View):
     
     def __init__(self):
         super().__init__()
-        self.voice_flow_manager = VoiceFlowManager()
+        self.voice_flow_manager = LocalVoiceFlowManager()
     
     def post(self, request):
         try:
@@ -121,7 +121,7 @@ class VoiceProcessingView(View):
                 audio_data = audio_file.read()
             
             # Process with exact same parameters as management command
-            processor = VoiceProcessor()
+            processor = LocalVoiceProcessor()
             transcription_result = processor.transcribe_audio(
                 audio_data,
                 sample_rate_hertz=48000,  # Standard webm sample rate
@@ -266,7 +266,7 @@ class TTSView(View):
     
     def __init__(self):
         super().__init__()
-        self.voice_flow_manager = VoiceFlowManager()
+        self.voice_flow_manager = LocalVoiceFlowManager()
     
     def post(self, request):
         """Convert text to speech and return audio"""
@@ -303,8 +303,8 @@ class ToneGeneratorView(View):
     
     def __init__(self):
         super().__init__()
-        self.voice_flow_manager = VoiceFlowManager()
-    
+        self.voice_flow_manager = LocalVoiceFlowManager()
+
     def get(self, request):
         """Generate and return audio tone"""
         try:
