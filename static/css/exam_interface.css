@@ -1,0 +1,181 @@
+/* sneportal/static/css/exam_interface.css */
+.recording {
+    animation: pulse-red 2s infinite;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.form-help {
+    display: block;
+    margin-top: 5px;
+    font-size: 14px;
+    color: #666;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.active {
+    display: block !important;
+}
+
+button:focus, select:focus {
+    outline: 3px solid #4CAF50 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2) !important;
+}
+
+.start-button:focus,
+.control-button:focus {
+    outline: 3px solid #4CAF50 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2) !important;
+    transform: translateY(-2px);
+}
+
+button, select, [tabindex] {
+    position: relative;
+}
+
+@media (prefers-contrast: high) {
+    button:focus, select:focus, .control-button:focus {
+        outline: 4px solid #000000 !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 6px #ffff00 !important;
+    }
+}
+
+.question-text, .status-bar {
+    color: #000000;
+    background-color: #f8f9fa;
+}
+
+.progress-bar {
+    border: 1px solid #dee2e6;
+    position: relative;
+}
+
+.progress-container {
+    margin-bottom: 20px;
+}
+
+select[aria-invalid="true"] {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+select[aria-invalid="false"] {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.controls button:focus {
+    z-index: 10;
+    position: relative;
+}
+
+.control-button:focus-visible {
+    outline: 3px solid #4CAF50;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgba(76, 175, 80, 0.2);
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: #000000;
+    color: #ffffff;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 9999;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.skip-link:focus {
+    top: 6px;
+    outline: 3px solid #4CAF50;
+    outline-offset: 2px;
+}
+
+.recording-feedback {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: pulse 1.5s infinite;
+    z-index: 1000;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+button:disabled:focus {
+    outline: 2px solid #6c757d;
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+@media (prefers-contrast: high) {
+    .setup-panel, .voice-interface {
+        border: 2px solid #000000;
+    }
+    .status-bar, .question-display {
+        border: 1px solid #000000;
+    }
+    .control-button {
+        border: 2px solid #000000;
+    }
+    body, .question-text, .status-bar, .form-help {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .recording, .pulse-red, .pulse {
+        animation: none;
+    }
+    .control-button:hover, .start-button:hover {
+        transform: none;
+    }
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

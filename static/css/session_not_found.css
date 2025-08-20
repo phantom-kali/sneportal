@@ -1,0 +1,45 @@
+/* sneportal/static/css/session_not_found.css */
+.error-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.error-card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.error-icon {
+    font-size: 4rem;
+    color: #667eea;
+    margin-bottom: 20px;
+}
+
+.error-card h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.error-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.error-card ul {
+    text-align: left;
+    margin: 0 auto;
+    max-width: 300px;
+    margin-bottom: 30px;
+    color: #666;
+}
+
+.error-card ul li {
+    margin-bottom: 10px;
+}
+
+.error-actions {
+    margin-top: 30px;
+}

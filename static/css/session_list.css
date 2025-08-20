@@ -1,0 +1,146 @@
+/* sneportal/static/css/session_list.css */
+.sessions-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.session-section {
+    margin-bottom: 40px;
+}
+
+.session-section h2 {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.pulse-green {
+    color: #28a745;
+    animation: pulse 2s infinite;
+}
+
+.count-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.session-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.session-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.session-card.active {
+    border-left: 4px solid #28a745;
+}
+
+.session-card.completed {
+    border-left: 4px solid #667eea;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.exam-info h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+}
+
+.subject {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.time-info, .completion-info {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.student-info {
+    margin-bottom: 20px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.info-row dt {
+    min-width: 100px;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.info-row dd {
+    margin: 0;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s ease;
+}
+
+.session-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border-radius: 15px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #667eea;
+}
+
+@media (max-width: 768px) {
+    .session-grid {
+        grid-template-columns: 1fr;
+    }
+}
