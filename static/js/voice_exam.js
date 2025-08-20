@@ -56,6 +56,141 @@ class VoiceExamSystem {
         this.recordButton.addEventListener('click', () => this.toggleRecording());
         this.repeatButton.addEventListener('click', () => this.repeatQuestion());
         this.stopExamButton.addEventListener('click', () => this.handleStopExam());
+
+        // Add keyboard navigation support
+        this.setupKeyboardNavigation();
+    }
+
+    setupKeyboardNavigation() {
+        // Add keyboard event listeners for all interactive elements
+        const interactiveElements = [
+            this.examSelect,
+            this.startExamButton,
+            this.recordButton,
+            this.repeatButton,
+            this.stopExamButton
+        ];
+
+        interactiveElements.forEach(element => {
+            if (element) {
+                // Make sure element is focusable
+                if (!element.hasAttribute('tabindex')) {
+                    element.setAttribute('tabindex', '0');
+                }
+
+                // Add keyboard event handlers
+                element.addEventListener('keydown', (e) => this.handleKeydown(e));
+                element.addEventListener('focus', (e) => this.handleFocus(e));
+                element.addEventListener('blur', (e) => this.handleBlur(e));
+            }
+        });
+
+        // Add global keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleGlobalKeydown(e));
+    }
+
+    handleKeydown(e) {
+        const element = e.target;
+        
+        // Handle Enter and Space for buttons
+        if ((e.key === 'Enter' || e.key === ' ') && element.tagName === 'BUTTON') {
+            e.preventDefault();
+            element.click();
+        }
+
+        // Handle arrow navigation for control buttons
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const buttons = Array.from(document.querySelectorAll('.control-button:not([disabled])'));
+            const currentIndex = buttons.indexOf(element);
+            
+            if (currentIndex !== -1) {
+                e.preventDefault();
+                let nextIndex;
+                
+                if (e.key === 'ArrowRight') {
+                    nextIndex = (currentIndex + 1) % buttons.length;
+                } else {
+                    nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+                }
+                
+                buttons[nextIndex].focus();
+            }
+        }
+    }
+
+    handleFocus(e) {
+        const element = e.target;
+        
+        // Announce button purpose for screen readers
+        if (element.tagName === 'BUTTON') {
+            const description = element.getAttribute('aria-describedby');
+            if (description) {
+                const helpText = document.getElementById(description);
+                if (helpText) {
+                    // Create live region announcement
+                    this.announceToScreenReader(helpText.textContent);
+                }
+            }
+        }
+    }
+
+    handleBlur(e) {
+        // Handle any cleanup when element loses focus
+        // Currently no specific actions needed
+    }
+
+    handleGlobalKeydown(e) {
+        // Global keyboard shortcuts for voice exam
+        if (e.altKey) {
+            switch(e.key) {
+                case 'r':
+                case 'R':
+                    e.preventDefault();
+                    if (this.recordButton && !this.recordButton.disabled) {
+                        this.recordButton.click();
+                        this.recordButton.focus();
+                    }
+                    break;
+                case 'q':
+                case 'Q':
+                    e.preventDefault();
+                    if (this.repeatButton && !this.repeatButton.disabled) {
+                        this.repeatButton.click();
+                        this.repeatButton.focus();
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    if (this.stopExamButton && !this.stopExamButton.disabled) {
+                        this.stopExamButton.click();
+                        this.stopExamButton.focus();
+                    }
+                    break;
+            }
+        }
+
+        // Handle Escape key to stop recording
+        if (e.key === 'Escape' && this.isRecording) {
+            e.preventDefault();
+            this.stopRecording();
+        }
+    }
+
+    announceToScreenReader(text) {
+        // Create a temporary live region for screen reader announcements
+        const announcement = document.createElement('div');
+        announcement.setAttribute('aria-live', 'polite');
+        announcement.setAttribute('aria-atomic', 'true');
+        announcement.className = 'sr-only';
+        announcement.textContent = text;
+        
+        document.body.appendChild(announcement);
+        
+        // Remove after announcement
+        setTimeout(() => {
+            document.body.removeChild(announcement);
+        }, 1000);
     }
 
     async handleExamStart(e) {
@@ -322,12 +457,28 @@ class VoiceExamSystem {
         // Update UI elements
         this.sessionState.textContent = this.formatState(data.state);
         this.timeRemaining.textContent = data.time_remaining_formatted;
-        this.progressBar.style.width = `${data.progress_percentage}%`;
+        
+        // Update progress bar and announce to screen readers
+        const progressPercentage = data.progress_percentage || 0;
+        this.progressBar.style.width = `${progressPercentage}%`;
+        this.progressBar.parentElement.setAttribute('aria-valuenow', progressPercentage);
+        
+        // Update progress text for screen readers
+        const progressText = document.getElementById('progress-text');
+        if (progressText) {
+            progressText.textContent = `Progress: ${Math.round(progressPercentage)}%`;
+        }
 
         if (data.current_question) {
             this.questionNumber.textContent = `Question ${data.current_question_index + 1} of ${data.total_questions}`;
             this.questionText.textContent = data.current_question.text;
+            
+            // Update question text accessibility
+            this.questionText.setAttribute('aria-label', `Current question: ${data.current_question.text}`);
         }
+
+        // Update session data
+        this.sessionData = { ...this.sessionData, ...data };
     }
 
     formatState(state) {

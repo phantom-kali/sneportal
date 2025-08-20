@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Exam System</title>
+    <title>{% block title %}Voice Exam System{% endblock %}</title>
+    <meta name="description" content="{% block description %}Accessible voice-first exam system for blind students using speech-to-text and text-to-speech technology{% endblock %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -75,8 +76,58 @@
         }
 
         select:focus {
-            outline: none;
+            outline: 3px solid #4CAF50;
+            outline-offset: 2px;
             border-color: #667eea;
+        }
+
+        /* Improve button focus indicators */
+        .start-button:focus,
+        .control-button:focus {
+            outline: 3px solid #4CAF50;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            body {
+                background: #ffffff;
+                color: #000000;
+            }
+            
+            .setup-panel, .voice-interface {
+                border: 2px solid #000000;
+                background: #ffffff;
+            }
+            
+            select, .start-button, .control-button {
+                border: 2px solid #000000;
+            }
+        }
+
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Skip to main content link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000000;
+            color: #ffffff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 9999;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
         }
 
         .start-button {
@@ -260,23 +311,24 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="container">
-        <header class="header">
-            <h1>{% block header_title %}Voice Exam System{% endblock %}</h1>
-            <p>{% block header_subtitle %}Interactive Voice-Based Learning{% endblock %}</p>
+        <header class="header" role="banner">
+            <h1 id="main-title">{% block header_title %}Voice Exam System{% endblock %}</h1>
+            <p aria-describedby="main-title">{% block header_subtitle %}Interactive Voice-Based Learning{% endblock %}</p>
         </header>
 
         {% if messages %}
-        <div class="messages">
+        <div class="messages" role="alert" aria-live="polite">
             {% for message in messages %}
-            <div class="feedback {% if message.tags %}{{ message.tags }}{% endif %}">
+            <div class="feedback {% if message.tags %}{{ message.tags }}{% endif %}" role="alert">
                 {{ message }}
             </div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <main>
+        <main role="main" aria-labelledby="main-title" id="main-content">
             {% block content %}
             {% endblock %}
         </main>

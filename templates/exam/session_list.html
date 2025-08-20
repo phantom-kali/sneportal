@@ -6,122 +6,133 @@
 {% block content %}
 <div class="sessions-container">
     <!-- Active Sessions -->
-    <div class="session-section">
-        <h2>
-            <i class="fas fa-circle pulse-green"></i>
+    <section class="session-section" aria-labelledby="active-sessions-title">
+        <h2 id="active-sessions-title">
+            <i class="fas fa-circle pulse-green" aria-hidden="true"></i>
             Active Sessions
-            <span class="count-badge">{{ active_sessions|length }}</span>
+            <span class="count-badge" aria-label="{{ active_sessions|length }} active sessions">{{ active_sessions|length }}</span>
         </h2>
-        <div class="session-grid">
+        <div class="session-grid" role="list" aria-label="Active exam sessions">
             {% for session in active_sessions %}
-            <div class="session-card active" data-session-id="{{ session.session_id }}">
+            <div class="session-card active" data-session-id="{{ session.session_id }}" role="listitem">
                 <div class="session-header">
                     <div class="exam-info">
-                        <h3>{{ session.exam.title }}</h3>
+                        <h3 id="exam-{{ session.session_id }}">{{ session.exam.title }}</h3>
                         <span class="subject">{{ session.exam.subject.name }}</span>
                     </div>
                     <div class="time-info">
-                        <i class="fas fa-clock"></i>
-                        <span class="time-remaining" data-seconds="{{ session.time_remaining }}">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                        <span class="time-remaining" data-seconds="{{ session.time_remaining }}" aria-label="Time remaining">
                             {{ session.time_remaining_formatted }}
                         </span>
                     </div>
                 </div>
                 <div class="session-body">
-                    <div class="student-info">
+                    <dl class="student-info">
                         <div class="info-row">
-                            <label>Student:</label>
-                            <span>{{ session.student_name|default:"Pending..." }}</span>
+                            <dt>Student:</dt>
+                            <dd>{{ session.student_name|default:"Pending..." }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>Grade:</label>
-                            <span>{{ session.student_grade|default:"Pending..." }}</span>
+                            <dt>Grade:</dt>
+                            <dd>{{ session.student_grade|default:"Pending..." }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>State:</label>
-                            <span class="session-state">{{ session.current_state|title }}</span>
+                            <dt>State:</dt>
+                            <dd class="session-state">{{ session.current_state|title }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>Progress:</label>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ session.progress_percentage }}%"></div>
-                            </div>
+                            <dt>Progress:</dt>
+                            <dd>
+                                <div class="progress-bar" role="progressbar" aria-valuenow="{{ session.progress_percentage }}" aria-valuemin="0" aria-valuemax="100" aria-label="Exam progress {{ session.progress_percentage }}%">
+                                    <div class="progress-fill" style="width: {{ session.progress_percentage }}%"></div>
+                                </div>
+                            </dd>
                         </div>
-                    </div>
-                    <div class="session-actions">
-                        <button class="control-button primary view-session" onclick="viewSession('{{ session.session_id }}')">
-                            <i class="fas fa-eye"></i> View
+                    </dl>
+                    <div class="session-actions" role="group" aria-labelledby="exam-{{ session.session_id }}">
+                        <button class="control-button primary view-session" onclick="viewSession('{{ session.session_id }}')" aria-describedby="view-help">
+                            <i class="fas fa-eye" aria-hidden="true"></i> View
                         </button>
-                        <button class="control-button secondary stop-session" onclick="stopSession('{{ session.session_id }}')">
-                            <i class="fas fa-stop"></i> Stop
+                        <button class="control-button secondary stop-session" onclick="stopSession('{{ session.session_id }}')" aria-describedby="stop-help">
+                            <i class="fas fa-stop" aria-hidden="true"></i> Stop
                         </button>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="empty-state">
-                <i class="fas fa-coffee"></i>
+            <div class="empty-state" role="listitem">
+                <i class="fas fa-coffee" aria-hidden="true"></i>
                 <p>No active sessions at the moment</p>
             </div>
             {% endfor %}
         </div>
-    </div>
+    </section>
 
     <!-- Completed Sessions -->
-    <div class="session-section">
-        <h2>
-            <i class="fas fa-check-circle"></i>
+    <section class="session-section" aria-labelledby="completed-sessions-title">
+        <h2 id="completed-sessions-title">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
             Completed Sessions
-            <span class="count-badge">{{ completed_sessions|length }}</span>
+            <span class="count-badge" aria-label="{{ completed_sessions|length }} completed sessions">{{ completed_sessions|length }}</span>
         </h2>
-        <div class="session-grid">
+        <div class="session-grid" role="list" aria-label="Completed exam sessions">
             {% for session in completed_sessions %}
-            <div class="session-card completed">
+            <div class="session-card completed" role="listitem">
                 <div class="session-header">
                     <div class="exam-info">
-                        <h3>{{ session.exam.title }}</h3>
+                        <h3 id="completed-exam-{{ session.session_id }}">{{ session.exam.title }}</h3>
                         <span class="subject">{{ session.exam.subject.name }}</span>
                     </div>
                     <div class="completion-info">
-                        <i class="fas fa-calendar"></i>
-                        <span>{{ session.completed_at|date:"M d, Y H:i" }}</span>
+                        <i class="fas fa-calendar" aria-hidden="true"></i>
+                        <span aria-label="Completed on">{{ session.completed_at|date:"M d, Y H:i" }}</span>
                     </div>
                 </div>
                 <div class="session-body">
-                    <div class="student-info">
+                    <dl class="student-info">
                         <div class="info-row">
-                            <label>Student:</label>
-                            <span>{{ session.student_name }}</span>
+                            <dt>Student:</dt>
+                            <dd>{{ session.student_name }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>Grade:</label>
-                            <span>{{ session.student_grade }}</span>
+                            <dt>Grade:</dt>
+                            <dd>{{ session.student_grade }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>Score:</label>
-                            <span>{{ session.total_score }}/{{ session.exam.get_total_points }}</span>
+                            <dt>Score:</dt>
+                            <dd>{{ session.total_score }}/{{ session.exam.get_total_points }}</dd>
                         </div>
                         <div class="info-row">
-                            <label>Completion:</label>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 100%"></div>
-                            </div>
+                            <dt>Completion:</dt>
+                            <dd>
+                                <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" aria-label="Exam completed">
+                                    <div class="progress-fill" style="width: 100%"></div>
+                                </div>
+                            </dd>
                         </div>
-                    </div>
-                    <div class="session-actions">
-                        <a href="{% url 'exam:exam_results' session.session_id %}" class="control-button primary">
-                            <i class="fas fa-chart-bar"></i> Results
+                    </dl>
+                    <div class="session-actions" role="group" aria-labelledby="completed-exam-{{ session.session_id }}">
+                        <a href="{% url 'exam:exam_results' session.session_id %}" class="control-button primary" aria-describedby="results-help">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i> Results
                         </a>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="empty-state">
-                <i class="fas fa-history"></i>
+            <div class="empty-state" role="listitem">
+                <i class="fas fa-history" aria-hidden="true"></i>
                 <p>No completed sessions yet</p>
             </div>
             {% endfor %}
         </div>
+    </section>
+
+    <!-- Hidden help text for screen readers -->
+    <div class="sr-only">
+        <div id="view-help">View detailed session information</div>
+        <div id="stop-help">Stop the current exam session</div>
+        <div id="results-help">View exam results and scores</div>
     </div>
 </div>
 {% endblock %}
@@ -211,10 +222,28 @@
         align-items: center;
     }
 
-    .info-row label {
+    .info-row dt {
         min-width: 100px;
         color: #666;
         font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .info-row dd {
+        margin: 0;
+    }
+
+    /* Screen reader only content */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
     }
 
     .progress-bar {
